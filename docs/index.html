@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shivam Learns Claude — Daily Learning Journal</title>
+  <meta name="description" content="A non-technical person learning Claude AI in public, every single day.">
+  <style>
+    :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --teal: #64ffda; --purple: #a78bfa; --white: #fff; --gray: #8b949e; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--white); font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+    .hero { padding: 80px 24px 60px; text-align: center; border-bottom: 1px solid var(--border); }
+    .hero h1 { font-size: clamp(2rem, 5vw, 4rem); font-weight: 900; }
+    .hero h1 span { color: var(--teal); }
+    .hero p { color: var(--gray); margin-top: 16px; font-size: 1.1rem; max-width: 600px; margin-inline: auto; line-height: 1.7; }
+    .stats { display: flex; gap: 40px; justify-content: center; margin-top: 40px; flex-wrap: wrap; }
+    .stat .num { font-size: 2.5rem; font-weight: 900; color: var(--teal); }
+    .stat .label { color: var(--gray); font-size: 0.85rem; margin-top: 4px; }
+    .feed { max-width: 800px; margin: 60px auto; padding: 0 24px 80px; }
+    .feed-title { font-size: 1.1rem; color: var(--gray); margin-bottom: 32px; text-transform: uppercase; letter-spacing: 0.1em; }
+    .entry { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; transition: border-color 0.2s; }
+    .entry:hover { border-color: var(--teal); }
+    .day-badge { background: var(--teal); color: #000; font-weight: 700; font-size: 0.75rem; padding: 4px 10px; border-radius: 6px; display: inline-block; }
+    .entry h2 { margin-top: 14px; font-size: 1.25rem; }
+    .entry h2 a { color: var(--white); text-decoration: none; }
+    .entry h2 a:hover { color: var(--teal); }
+    .entry .date { color: var(--gray); font-size: 0.85rem; margin-top: 6px; }
+    .entry .tip { color: #ccc; margin-top: 12px; font-size: 0.95rem; line-height: 1.6; }
+    .placeholder { text-align: center; padding: 80px 24px; color: var(--gray); }
+    .placeholder .big { font-size: 4rem; margin-bottom: 16px; }
+    footer { text-align: center; padding: 40px; color: var(--gray); font-size: 0.85rem; border-top: 1px solid var(--border); }
+    footer a { color: var(--teal); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <h1>Shivam Learns <span>Claude</span></h1>
+    <p>A non-technical person learning Claude AI in public — every single day.<br>
+       No jargon. No tech degree needed. Real results from real tasks.</p>
+    <div class="stats">
+      <div class="stat"><div class="num" id="days">0</div><div class="label">Days Published</div></div>
+      <div class="stat"><div class="num">6</div><div class="label">Platforms</div></div>
+      <div class="stat"><div class="num">∞</div><div class="label">Days to Go</div></div>
+    </div>
+  </header>
+  <main class="feed">
+    <div class="feed-title">Latest Entries</div>
+    <div class="placeholder">
+      <div class="big">🚀</div>
+      <p>First entry drops tomorrow at 10:30 AM IST.<br>Come back then!</p>
+    </div>
+  </main>
+  <footer>
+    <p>By <strong>Shivam Sahu</strong> · Updated daily · <a href="https://github.com/shivamsahugzp/claude-daily-journal">GitHub</a> · <a href="https://dev.to/shivamsahu">dev.to</a></p>
+  </footer>
+</body>
+</html>
