@@ -11,11 +11,11 @@ import time
 from pathlib import Path
 from typing import Optional
 
-IG_USERNAME = os.environ.get("IG_USERNAME", "")
+IG_USERNAME = os.environ.get("IG_USERNAME", "shivam.ai.daily")
 IG_PASSWORD = os.environ.get("IG_PASSWORD", "")
 IG_PHONE = os.environ.get("IG_PHONE", "9458707534")  # for 2FA if triggered
 
-SESSION_FILE = Path("/tmp/ig_session.json")
+SESSION_FILE = Path("/tmp/ig_session_live.json")
 
 
 def _get_client():
