@@ -1,86 +1,90 @@
 """
-Publisher — Instagram Graph API.
-Posts a carousel (multi-image) with the 5 generated slide images.
-Requires: Instagram Business/Creator account connected to a Facebook Page.
+Publisher — Instagram via instagrapi (no Facebook Business approval needed).
+Uses Instagram username + password directly, like logging in on your phone.
+Posts a carousel of the 5 generated slide images with the caption.
+Session is cached so 2FA is only needed on first login.
 """
+
 import os
+import json
 import time
-import httpx
 from pathlib import Path
+from typing import Optional
+
+IG_USERNAME = os.environ.get("IG_USERNAME", "")
+IG_PASSWORD = os.environ.get("IG_PASSWORD", "")
+IG_PHONE = os.environ.get("IG_PHONE", "9458707534")  # for 2FA if triggered
+
+SESSION_FILE = Path("/tmp/ig_session.json")
 
 
-IG_USER_ID = os.environ.get("IG_USER_ID", "")
-IG_ACCESS_TOKEN = os.environ.get("IG_ACCESS_TOKEN", "")  # long-lived token
-BASE_URL = "https://graph.facebook.com/v19.0"
+def _get_client():
+    """Return an authenticated instagrapi Client."""
+    try:
+        from instagrapi import Client
+        from instagrapi.exceptions import LoginRequired, TwoFactorRequired
+    except ImportError:
+        raise RuntimeError("instagrapi not installed. Add it to requirements.txt.")
 
-# Images must be hosted at a public URL for the IG API.
-# We use GitHub raw URLs since the repo is public.
-GITHUB_RAW_BASE = os.environ.get("GITHUB_RAW_BASE", "")  # e.g. https://raw.githubusercontent.com/shivamsahugzp/claude-daily-journal/main
+    cl = Client()
+    cl.delay_range = [2, 5]  # human-like delays between requests
 
+    # Try loading existing session first
+    if SESSION_FILE.exists():
+        try:
+            session = json.loads(SESSION_FILE.read_text())
+            cl.set_settings(session)
+            cl.login(IG_USERNAME, IG_PASSWORD)
+            print("[instagram] Reused existing session")
+            return cl
+        except Exception:
+            print("[instagram] Session expired, re-logging in...")
+            SESSION_FILE.unlink(missing_ok=True)
 
-def _image_url(date_str: str, filename: str) -> str:
-    return f"{GITHUB_RAW_BASE}/journal/{date_str}/{filename}?t={int(time.time())}"
+    # Fresh login
+    try:
+        cl.login(IG_USERNAME, IG_PASSWORD)
+    except TwoFactorRequired:
+        # In GitHub Actions this won't work interactively — use session file instead
+        print("[instagram] 2FA required — use session file approach")
+        raise
 
-
-def _create_image_container(image_url: str, is_carousel_item: bool = True) -> str:
-    params = {
-        "image_url": image_url,
-        "is_carousel_item": "true" if is_carousel_item else "false",
-        "access_token": IG_ACCESS_TOKEN,
-    }
-    resp = httpx.post(f"{BASE_URL}/{IG_USER_ID}/media", params=params, timeout=30)
-    resp.raise_for_status()
-    return resp.json().get("id")
-
-
-def _create_carousel_container(children: list[str], caption: str) -> str:
-    params = {
-        "media_type": "CAROUSEL",
-        "children": ",".join(children),
-        "caption": caption,
-        "access_token": IG_ACCESS_TOKEN,
-    }
-    resp = httpx.post(f"{BASE_URL}/{IG_USER_ID}/media", params=params, timeout=30)
-    resp.raise_for_status()
-    return resp.json().get("id")
-
-
-def _publish_container(container_id: str) -> dict:
-    params = {
-        "creation_id": container_id,
-        "access_token": IG_ACCESS_TOKEN,
-    }
-    resp = httpx.post(f"{BASE_URL}/{IG_USER_ID}/media_publish", params=params, timeout=30)
-    resp.raise_for_status()
-    return resp.json()
+    # Save session for future runs
+    SESSION_FILE.write_text(json.dumps(cl.get_settings()))
+    print("[instagram] Logged in fresh, session saved")
+    return cl
 
 
 def publish(content: dict, asset_paths: dict) -> dict:
-    if not IG_USER_ID or not IG_ACCESS_TOKEN or not GITHUB_RAW_BASE:
-        return {"success": False, "error": "Instagram credentials not fully set"}
+    if not IG_USERNAME or not IG_PASSWORD:
+        return {"success": False, "error": "IG_USERNAME or IG_PASSWORD not set"}
 
-    date_str = content["date"]
-    carousel_files = [f"carousel_{i}.png" for i in range(1, 6)]
+    # Find carousel images
+    carousel = asset_paths.get("carousel", [])
+    if not carousel:
+        return {"success": False, "error": "No carousel images found"}
+
+    # Filter to existing files only
+    valid_images = [Path(p) for p in carousel if Path(p).exists()]
+    if not valid_images:
+        return {"success": False, "error": "Carousel image files not found on disk"}
+
+    caption = content.get("instagram_caption", f"Day {content['day']} of learning Claude AI in public. 🤖\n\n#ClaudeAI #LearningInPublic #AIForEveryone")
 
     try:
-        # Create individual image containers
-        child_ids = []
-        for filename in carousel_files:
-            url = _image_url(date_str, filename)
-            container_id = _create_image_container(url)
-            child_ids.append(container_id)
-            time.sleep(1)
+        cl = _get_client()
 
-        # Create carousel container
-        carousel_id = _create_carousel_container(child_ids, content["instagram_caption"])
-        time.sleep(5)  # IG requires wait before publishing
+        if len(valid_images) == 1:
+            # Single image post
+            media = cl.photo_upload(valid_images[0], caption=caption)
+        else:
+            # Carousel post (up to 10 images)
+            media = cl.album_upload(valid_images[:10], caption=caption)
 
-        # Publish
-        result = _publish_container(carousel_id)
-        post_id = result.get("id", "")
-        url = f"https://www.instagram.com/p/{post_id}/" if post_id else ""
-        print(f"[instagram] Posted carousel → {url}")
-        return {"success": True, "url": url, "id": post_id}
+        post_url = f"https://www.instagram.com/p/{media.code}/"
+        print(f"[instagram] Posted carousel → {post_url}")
+        return {"success": True, "url": post_url, "id": str(media.pk)}
+
     except Exception as e:
         print(f"[instagram] Failed: {e}")
         return {"success": False, "error": str(e)}

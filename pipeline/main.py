@@ -218,11 +218,8 @@ def run() -> None:
     # Twitter/X — disabled
     report["twitter_success"] = False
 
-    # Threads
-    from pipeline.publishers import threads
-    r = threads.publish(content)
-    report["threads_url"] = r.get("url", "")
-    report["threads_success"] = r["success"]
+    # Threads — disabled
+    report["threads_success"] = False
 
     # Instagram (depends on images being pushed to GitHub first)
     from pipeline.publishers import instagram
@@ -247,7 +244,7 @@ def run() -> None:
     print(f"\n{'='*60}")
     print(f"  ✅ Day {content['day']} Complete — {today}")
     print(f"{'='*60}")
-    platforms = ["devto", "hashnode", "threads", "instagram", "linkedin"]
+    platforms = ["devto", "hashnode", "instagram", "linkedin"]
     for p in platforms:
         status = "✅" if report.get(f"{p}_success") else "❌"
         url = report.get(f"{p}_url", "")
