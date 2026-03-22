@@ -215,11 +215,8 @@ def run() -> None:
     report["hashnode_url"] = r.get("url", "")
     report["hashnode_success"] = r["success"]
 
-    # Twitter/X
-    from pipeline.publishers import twitter
-    r = twitter.publish(content)
-    report["twitter_url"] = r.get("url", "")
-    report["twitter_success"] = r["success"]
+    # Twitter/X — disabled
+    report["twitter_success"] = False
 
     # Threads
     from pipeline.publishers import threads
@@ -250,7 +247,7 @@ def run() -> None:
     print(f"\n{'='*60}")
     print(f"  ✅ Day {content['day']} Complete — {today}")
     print(f"{'='*60}")
-    platforms = ["devto", "hashnode", "twitter", "threads", "instagram", "linkedin"]
+    platforms = ["devto", "hashnode", "threads", "instagram", "linkedin"]
     for p in platforms:
         status = "✅" if report.get(f"{p}_success") else "❌"
         url = report.get(f"{p}_url", "")
