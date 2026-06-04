@@ -72,7 +72,7 @@ The writer's system prompt enforces:
 ## Running locally
 
 ```bash
-git clone https://github.com/shivamsahugzp/claude-daily-journal
+# Clone the repo, then:
 cd claude-daily-journal
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
